@@ -33,10 +33,28 @@ fn handle_connection(mut stream: TcpStream) {
   let request_line = http_request.get(0).unwrap();
   let request_target = request_line.split(' ').nth(1).unwrap();
 
-  let http_version = "HTTP/1.1";
-  let status_code = if request_target == "/" { 200 } else { 404 };
-  let status_message = if request_target == "/" { "OK" } else { "Not Found" };
-  let response = format!("{http_version} {status_code} {status_message}\r\n\r\n");
-
+  let response = generate_reponse(request_target);
   stream.write_all(response.as_bytes()).unwrap();
+}
+
+fn generate_reponse(target: &str) -> String {
+  let http_version = "HTTP/1.1";
+
+  let target_array = target.split('/').collect::<Vec<&str>>();
+  println!("target_array: {:?}", target_array);
+
+  match target_array[1] {
+    "" => {
+      format!("{http_version} 200 OK\r\n\r\n")
+    }
+    "echo" => {
+      let echo_text = target_array[2];
+      let echo_text_len = echo_text.len();
+      let response_string = format!("Content-Type: text/plain\r\nContent-Length: {echo_text_len}\r\n\r\n{echo_text}");
+      format!("{http_version} 200 OK\r\n{response_string}")
+    }
+    _ => {
+      format!("{http_version} 404 NOT FOUND\r\n\r\n")
+    }
+  }
 }

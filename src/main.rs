@@ -54,7 +54,7 @@ fn generate_reponse(target: &str) -> String {
       format!("{http_version} 200 OK\r\n{response_string}")
     }
     _ => {
-      format!("{http_version} 404 NOT FOUND\r\n\r\n")
+      format!("{http_version} 404 Not Found\r\n\r\n")
     }
   }
 }

@@ -22,18 +22,21 @@ fn main() {
 }
 
 fn handle_connection(mut stream: TcpStream) {
-    let buf_reader = BufReader::new(&mut stream);
-    let http_request: Vec<_> = buf_reader
-        .lines()
-        .map(|result| result.unwrap())
-        .take_while(|line| !line.is_empty())
-        .collect();
-    println!("HTTP request: {:?}", http_request);
+  let buf_reader = BufReader::new(&mut stream);
+  let http_request: Vec<_> = buf_reader
+    .lines()
+    .map(|result| result.unwrap())
+    .take_while(|line| !line.is_empty())
+    .collect();
+  println!("HTTP request: {:?}", http_request);
 
-    let http_version = "HTTP/1.1";
-    let status_code = "200";
-    let status_message = "OK";
-    let response = format!("{http_version} {status_code} {status_message}\r\n\r\n");
+  let request_line = http_request.get(0).unwrap();
+  let request_target = request_line.split(' ').nth(1).unwrap();
 
-    stream.write_all(response.as_bytes()).unwrap();
+  let http_version = "HTTP/1.1";
+  let status_code = if request_target == "/" { 200 } else { 404 };
+  let status_message = if request_target == "/" { "OK" } else { "Not Found" };
+  let response = format!("{http_version} {status_code} {status_message}\r\n\r\n");
+
+  stream.write_all(response.as_bytes()).unwrap();
 }

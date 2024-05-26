@@ -31,34 +31,49 @@ fn handle_connection(mut stream: TcpStream) {
   println!("HTTP request: {:?}", http_request);
 
   // let method = http_request.get(0).unwrap().split(' ').nth(0).unwrap();
-  let request_target = http_request.get(0).unwrap().split(' ').nth(1).unwrap();
-  let user_agent = http_request.get(2).unwrap().split(' ').nth(1).unwrap();
 
-  let response = generate_reponse(request_target, user_agent);
+  let response = generate_reponse(http_request);
   stream.write_all(response.as_bytes()).unwrap();
 }
 
-fn generate_reponse(target: &str, user_agent: &str) -> String {
+fn generate_reponse(http_request: Vec<String>) -> String {
   let http_version = "HTTP/1.1";
 
-  let target_array = target.split('/').collect::<Vec<&str>>();
+  let target_array = http_request
+    .get(0)
+    .unwrap()
+    .split(' ')
+    .nth(1)
+    .unwrap()
+    .split('/')
+    .collect::<Vec<&str>>();
+  
   println!("target_array: {:?}", target_array);
 
   match target_array[1] {
     "" => {
-      format!("{http_version} 200 OK\r\n\r\n")
+      return format!("{http_version} 400 Bad Request\r\n\r\n");
     }
     "echo" => {
       let echo_text = target_array[2];
       let response_string = text_content_header(echo_text);
-      format!("{http_version} 200 OK\r\n{response_string}")
+      return format!("{http_version} 200 OK\r\n{response_string}");
     }
     "user-agent" => {
+      let user_agent = http_request
+        .get(2)
+        .unwrap()
+        .split(' ')
+        .nth(1)
+        .unwrap();
+      
+      if user_agent == "" { return format!("{http_version} 400 Bad Request\r\n\r\n"); }
+      
       let response_string = text_content_header(user_agent);
-      format!("{http_version} 200 OK\r\n{response_string}")
+      return format!("{http_version} 200 OK\r\n{response_string}");
     }
     _ => {
-      format!("{http_version} 404 Not Found\r\n\r\n")
+      return format!("{http_version} 404 Not Found\r\n\r\n");
     }
   }
 }

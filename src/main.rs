@@ -49,7 +49,7 @@ fn generate_reponse(http_request: Vec<String>) -> String {
 
     match target_array[1] {
         "" => {
-            return format!("{http_version} 400 Bad Request\r\n\r\n");
+            return format!("{http_version} 200 OK\r\n\r\n");
         }
         "echo" => {
             let echo_text = target_array[2];

@@ -30,7 +30,7 @@ fn handle_connection(mut stream: TcpStream) {
     .collect();
   println!("HTTP request: {:?}", http_request);
 
-  let method = http_request.get(0).unwrap().split(' ').nth(0).unwrap();
+  // let method = http_request.get(0).unwrap().split(' ').nth(0).unwrap();
   let request_target = http_request.get(0).unwrap().split(' ').nth(1).unwrap();
   let user_agent = http_request.get(2).unwrap().split(' ').nth(1).unwrap();
 
@@ -50,15 +50,20 @@ fn generate_reponse(target: &str, user_agent: &str) -> String {
     }
     "echo" => {
       let echo_text = target_array[2];
-      let echo_text_len = echo_text.len();
-      let response_string = format!("Content-Type: text/plain\r\nContent-Length: {echo_text_len}\r\n\r\n{echo_text}");
+      let response_string = text_content_header(echo_text);
       format!("{http_version} 200 OK\r\n{response_string}")
     }
     "user-agent" => {
-      format!("{http_version} 200 OK\r\n\r\n{user_agent}")
+      let response_string = text_content_header(user_agent);
+      format!("{http_version} 200 OK\r\n{response_string}")
     }
     _ => {
       format!("{http_version} 404 Not Found\r\n\r\n")
     }
   }
+}
+
+fn text_content_header(text: &str) -> String {
+  let text_len = text.len();
+  format!("Content-Type: text/plain\r\nContent-Length: {text_len}\r\n\r\n{text}")
 }

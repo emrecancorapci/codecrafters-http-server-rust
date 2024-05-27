@@ -1,4 +1,7 @@
-use std::{ io::{ prelude::*, BufReader }, net::{ TcpListener, TcpStream } };
+use std::{ io::{ prelude::*, BufReader }, net::{ TcpListener, TcpStream }, thread };
+
+pub mod endpoint;
+pub mod request;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
@@ -9,7 +12,7 @@ fn main() {
         match stream {
             Ok(_stream) => {
                 println!("accepted new connection");
-                handle_connection(_stream);
+                thread::spawn(move || handle_connection(_stream));
             }
             Err(e) => {
                 println!("error: {}", e);
@@ -34,45 +37,34 @@ fn handle_connection(mut stream: TcpStream) {
 }
 
 fn generate_reponse(http_request: Vec<String>) -> String {
-    let http_version = "HTTP/1.1";
+    let header = http_request.get(0);
 
-    let target_array = http_request
-        .get(0)
-        .unwrap()
-        .split(' ')
-        .nth(1)
-        .unwrap()
-        .split('/')
-        .collect::<Vec<&str>>();
+    if header.is_none() {
+        return request::bad_request();
+    }
+
+    let target_array = header.unwrap().split(' ').nth(1);
+
+    if target_array.is_none() {
+        return request::bad_request();
+    }
+
+    let target = target_array.unwrap().split('/').collect::<Vec<&str>>();
 
     println!("target_array: {:?}", target_array);
 
-    match target_array[1] {
+    match target[1] {
         "" => {
-            return format!("{http_version} 200 OK\r\n\r\n");
+            return request::ok("");
         }
         "echo" => {
-            let echo_text = target_array[2];
-            let response_string = text_content_header(echo_text);
-            return format!("{http_version} 200 OK\r\n{response_string}");
+            return endpoint::echo(http_request);
         }
         "user-agent" => {
-            let user_agent = http_request.get(2).unwrap().split(' ').nth(1).unwrap();
-
-            if user_agent == "" {
-                return format!("{http_version} 400 Bad Request\r\n\r\n");
-            }
-
-            let response_string = text_content_header(user_agent);
-            return format!("{http_version} 200 OK\r\n{response_string}");
+            return endpoint::user_agent(http_request);
         }
         _ => {
-            return format!("{http_version} 404 Not Found\r\n\r\n");
+            return request::not_found();
         }
     }
-}
-
-fn text_content_header(text: &str) -> String {
-    let text_len = text.len();
-    format!("Content-Type: text/plain\r\nContent-Length: {text_len}\r\n\r\n{text}")
 }

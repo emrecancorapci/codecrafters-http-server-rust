@@ -30,43 +30,40 @@ fn handle_connection(mut stream: TcpStream) {
         .collect();
     println!("HTTP request: {:?}", http_request);
 
-    let response = generate_reponse(http_request);
+    let response = generate_reponse(&http_request);
+    println!("Response: {response}");
     stream.write_all(response.as_bytes()).unwrap();
 }
 
-fn generate_reponse(http_request: Vec<String>) -> String {
-    let header = http_request.get(0);
+fn generate_reponse(http_request: &Vec<String>) -> String {
+    let request_line = {
+        let request_line = http_request.get(0);
 
-    if header.is_none() {
-        return request::bad_request();
-    }
+        if request_line.is_none() {
+            return request::bad_request();
+        } else {
+            request_line.unwrap().split(' ').collect::<Vec<&str>>()
+        }
+    };
 
-    let target_array = header.unwrap().split(' ').nth(1);
+    let path = request_line[1][1..].split('/').collect::<Vec<&str>>();
 
-    if target_array.is_none() {
-        return request::bad_request();
-    }
-
-    let target = target_array.unwrap().split('/').collect::<Vec<&str>>();
-
-    println!("target_array: {:?}", target_array);
-
-    router(target[1])
+    router(http_request.clone(), path[0])
 }
 
-fn router(target: &str) -> String {
-    match target {
+fn router(http_request: Vec<String>, path: &str, ) -> String {
+    match path {
         "" => {
             return request::ok("");
         }
         "echo" => {
-            return request::ok("echo");
+            return endpoint::echo(http_request);
         }
         "user-agent" => {
-            return request::ok("user-agent");
+            return endpoint::user_agent(http_request);
         }
         "files" => {
-            return request::ok("files");
+            return endpoint::files(http_request);
         }
         _ => {
             return request::not_found();

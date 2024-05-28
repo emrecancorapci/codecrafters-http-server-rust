@@ -1,5 +1,4 @@
 #[allow(dead_code)]
-
 use std::{ io::{ prelude::*, BufReader }, net::{ TcpListener, TcpStream }, thread };
 use itertools::Itertools;
 
@@ -7,7 +6,7 @@ pub mod endpoint;
 pub mod request;
 
 #[derive(Debug)]
-pub struct HttpRequest<'a>{
+pub struct HttpRequest<'a> {
     method: &'a str,
     path: &'a str,
     http_version: &'a str,
@@ -82,14 +81,40 @@ fn format_request(http_request: &Vec<String>) -> HttpRequest {
         }
     };
 
-    println!("request_line: {:?}", request_line);
+    let (method, path, http_version) = {
+        if request_line.len() < 3 {
+            panic!("request_line does not have 3 parts")
+        } else {
+            (request_line[0], request_line[1], request_line[2])
+        }
+    };
+
+    let user_agent = {
+        let user_agent = http_request.iter().find(|line| line.starts_with("User-Agent: "));
+
+        if user_agent.is_none() {
+            ""
+        } else {
+            &user_agent.unwrap()[12..].trim()
+        }
+    };
+
+    let host = {
+        let host = http_request.iter().find(|line| line.starts_with("Host: "));
+
+        if host.is_none() {
+            ""
+        } else {
+            &host.unwrap()[6..].trim()
+        }
+    };
 
     HttpRequest {
-        method: request_line[0],
-        path: request_line[1],
-        http_version: "HTTP/1.1", // "HTTP/1.1" is hardcoded for now
-        user_agent: http_request.get(2).unwrap().split(' ').nth(1).unwrap(),
-        host: http_request.get(1).unwrap().split(' ').nth(1).unwrap(),
+        method,
+        path,
+        http_version,
+        user_agent,
+        host,
         path_array: request_line[1][1..].split('/').collect_vec(),
     }
 }

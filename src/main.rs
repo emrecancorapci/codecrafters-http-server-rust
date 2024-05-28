@@ -82,6 +82,8 @@ fn format_request(http_request: &Vec<String>) -> HttpRequest {
         }
     };
 
+    println!("request_line: {:?}", request_line);
+
     HttpRequest {
         method: request_line[0],
         http_version: request_line[2],

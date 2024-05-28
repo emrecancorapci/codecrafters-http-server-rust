@@ -1,4 +1,4 @@
-use std::{ env, fs, io::Write, path::PathBuf };
+use std::{ collections::HashMap, env, fs, io::Write, path::PathBuf };
 
 use crate::http::{ response, Request };
 
@@ -25,7 +25,7 @@ pub fn get(http_request: &Request) -> String {
         return response::not_found();
     }
 
-    response::ok(&file.unwrap(), "application/octet-stream")
+    response::ok_body(&file.unwrap(), "application/octet-stream")
 }
 
 pub fn post(http_request: &Request) -> String {

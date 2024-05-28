@@ -10,7 +10,7 @@ pub fn router(http_request: &Request) -> String {
     
 
     match path[0] {
-        "" => { response::ok("", "") }
+        "" => { response::ok() }
         "user-agent" => { user_agent::router(http_request) }
         "echo" => { echo::router(http_request) }
         "files" => { file::router(http_request) }

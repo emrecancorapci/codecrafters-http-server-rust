@@ -9,7 +9,7 @@ pub fn get(http_request: &Request) -> String {
             if echo_text.is_empty() {
                 return response::bad_request("echo_text is empty");
             } else {
-                return response::ok(echo_text, "text/plain");
+                return response::ok_text(echo_text);
             }
         }
     }

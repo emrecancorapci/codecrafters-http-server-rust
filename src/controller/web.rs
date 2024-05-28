@@ -7,5 +7,5 @@ pub fn get() -> String {
         return response::not_found();
     }
 
-    response::ok(&index.unwrap(), "text/html")
+    response::ok_text(&index.unwrap())
 }

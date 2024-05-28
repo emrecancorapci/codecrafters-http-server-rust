@@ -11,11 +11,17 @@ pub mod request;
 
 #[derive(Debug)]
 pub struct HttpRequest<'a> {
-    method: &'a str,
-    path: &'a str,
-    http_version: &'a str,
+    request: Request<'a>,
     host: &'a str,
     user_agent: &'a str,
+    body: &'a str,
+}
+
+#[derive(Debug)]
+struct Request<'a> {
+    method: &'a str,
+    path: &'a str,
+    version: &'a str,
     path_array: Vec<&'a str>,
 }
 
@@ -36,16 +42,16 @@ fn main() {
 
 fn handle_connection(mut stream: TcpStream) {
     let buf_reader = BufReader::new(&mut stream);
-    let raw_http_request: Vec<_> = buf_reader
+    let buffer = buf_reader
         .lines()
         .map(|result| result.unwrap())
-        .take_while(|line| !line.is_empty())
+        //    .take_while(|line| !line.is_empty())
         .collect();
-    println!("HTTP request: {:?}", raw_http_request);
+    println!("Buffer: {:?}", buffer);
 
-    let http_request = &format_request(&raw_http_request);
+    let http_request = &format_request(&buffer);
 
-    println!("Formatted HTTP request: {:?}", http_request);
+    println!("HTTP request: {:?}", http_request);
 
     let response = routes::router(http_request);
 
@@ -65,11 +71,16 @@ fn format_request(http_request: &Vec<String>) -> HttpRequest {
         }
     };
 
-    let (method, path, http_version) = {
+    let request = {
         if request_line.len() < 3 {
             panic!("request_line does not have 3 parts")
         } else {
-            (request_line[0], request_line[1], request_line[2])
+            Request {
+                method: &request_line[0],
+                path: &request_line[1],
+                version: &request_line[2],
+                path_array: request_line[1][1..].split('/').collect_vec(),
+            }
         }
     };
 
@@ -93,12 +104,15 @@ fn format_request(http_request: &Vec<String>) -> HttpRequest {
         }
     };
 
+    // let body = {
+    //     let body = http_request;
+
+    // };
+
     HttpRequest {
-        method,
-        path,
-        http_version,
+        request,
         user_agent,
         host,
-        path_array: request_line[1][1..].split('/').collect_vec(),
+        body: "",
     }
 }

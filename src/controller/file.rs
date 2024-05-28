@@ -2,7 +2,7 @@ use crate::{ request::{ bad_request, not_found, send_content }, HttpRequest };
 use std::{ env, fs };
 
 pub fn get(http_request: &HttpRequest) -> String {
-    let file_name = http_request.path_array[1];
+    let file_name = http_request.request.path_array[1];
     let env_args: Vec<String> = env::args().collect();
 
     let mut directory = {

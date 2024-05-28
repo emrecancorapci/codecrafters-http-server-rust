@@ -1,6 +1,6 @@
-pub fn send_content(text: &str) -> String {
+pub fn send_content(text: &str, content_type: &str) -> String {
     let text_len = text.len();
-    let header = format!("Content-Type: text/plain\r\nContent-Length: {text_len}\r\n\r\n{text}");
+    let header = format!("Content-Type: {content_type}\r\nContent-Length: {text_len}\r\n\r\n{text}");
     ok(&header)
 }
 

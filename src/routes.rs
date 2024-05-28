@@ -3,6 +3,7 @@ use crate::http::{ response, Request };
 mod echo;
 mod file;
 mod user_agent;
+mod web;
 
 pub fn router(http_request: &Request) -> String {
     let path = &http_request.request.path_array;
@@ -13,6 +14,7 @@ pub fn router(http_request: &Request) -> String {
         "user-agent" => { user_agent::router(http_request) }
         "echo" => { echo::router(http_request) }
         "files" => { file::router(http_request) }
+        "web" => { web::router(http_request)}
         _ => { response::not_found() }
     }
 }

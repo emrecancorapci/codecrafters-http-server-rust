@@ -6,6 +6,7 @@ pub mod http;
 pub mod controller {
     pub mod echo;
     pub mod file;
+    pub mod web;
 }
 
 fn main() {

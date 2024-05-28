@@ -30,8 +30,6 @@ fn handle_connection(mut stream: TcpStream) {
         .collect();
     println!("HTTP request: {:?}", http_request);
 
-    // let method = http_request.get(0).unwrap().split(' ').nth(0).unwrap();
-
     let response = generate_reponse(http_request);
     stream.write_all(response.as_bytes()).unwrap();
 }
@@ -53,15 +51,22 @@ fn generate_reponse(http_request: Vec<String>) -> String {
 
     println!("target_array: {:?}", target_array);
 
-    match target[1] {
+    router(target[1])
+}
+
+fn router(target: &str) -> String {
+    match target {
         "" => {
             return request::ok("");
         }
         "echo" => {
-            return endpoint::echo(http_request);
+            return request::ok("echo");
         }
         "user-agent" => {
-            return endpoint::user_agent(http_request);
+            return request::ok("user-agent");
+        }
+        "files" => {
+            return request::ok("files");
         }
         _ => {
             return request::not_found();

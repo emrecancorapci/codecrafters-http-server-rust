@@ -40,7 +40,7 @@ fn generate_reponse(http_request: &Vec<String>) -> String {
         let request_line = http_request.get(0);
 
         if request_line.is_none() {
-            return request::bad_request();
+            return request::bad_request("request_line not found");
         } else {
             request_line.unwrap().split(' ').collect::<Vec<&str>>()
         }

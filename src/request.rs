@@ -1,14 +1,15 @@
 pub fn send_content(text: &str, content_type: &str) -> String {
     let text_len = text.len();
-    let header = format!("Content-Type: {content_type}\r\nContent-Length: {text_len}\r\n\r\n{text}");
-    ok(&header)
+    let content = format!("Content-Type: {content_type}\r\nContent-Length: {text_len}\r\n\r\n{text}");
+    ok(&content)
 }
 
 pub fn ok(content: &str) -> String {
     send_request("200 OK", content)
 }
 
-pub fn bad_request() -> String {
+pub fn bad_request(server_message: &str) -> String {
+    println!("{server_message}");
     send_request("400 Bad Request", "")
 }
 

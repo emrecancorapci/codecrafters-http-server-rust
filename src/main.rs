@@ -86,10 +86,10 @@ fn format_request(http_request: &Vec<String>) -> HttpRequest {
 
     HttpRequest {
         method: request_line[0],
-        http_version: request_line[2],
+        path: request_line[1],
+        http_version: "HTTP/1.1", // "HTTP/1.1" is hardcoded for now
         user_agent: http_request.get(2).unwrap().split(' ').nth(1).unwrap(),
         host: http_request.get(1).unwrap().split(' ').nth(1).unwrap(),
-        path: request_line[1],
         path_array: request_line[1][1..].split('/').collect_vec(),
     }
 }

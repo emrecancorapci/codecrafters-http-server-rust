@@ -1,10 +1,12 @@
-use std::{ io::{ prelude::*, BufReader }, net::{ TcpListener, TcpStream }, thread };
+#[allow(dead_code)]
 
+use std::{ io::{ prelude::*, BufReader }, net::{ TcpListener, TcpStream }, thread };
 use itertools::Itertools;
 
 pub mod endpoint;
 pub mod request;
 
+#[derive(Debug)]
 pub struct HttpRequest<'a>{
     method: &'a str,
     path: &'a str,
@@ -18,11 +20,8 @@ fn main() {
     let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
 
     for stream in listener.incoming() {
-        println!("connection accepted. Stream: {:?}", stream);
-
         match stream {
             Ok(_stream) => {
-                println!("accepted new connection");
                 thread::spawn(move || handle_connection(_stream));
             }
             Err(e) => {
@@ -42,6 +41,8 @@ fn handle_connection(mut stream: TcpStream) {
     println!("HTTP request: {:?}", raw_http_request);
 
     let http_request = &format_request(&raw_http_request);
+
+    println!("Formatted HTTP request: {:?}", http_request);
 
     let response = router(http_request);
 

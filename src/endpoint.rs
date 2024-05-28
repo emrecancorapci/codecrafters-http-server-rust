@@ -52,7 +52,7 @@ pub fn files(http_request: Vec<String>) -> String {
     }
 
     let file_name = {
-        let file_name = file_name_str.unwrap().split(' ').nth(2);
+        let file_name = file_name_str.unwrap().split(' ').nth(1);
 
         if file_name.is_none() {
             return bad_request("--directory is not set");

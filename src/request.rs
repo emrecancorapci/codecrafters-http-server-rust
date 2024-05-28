@@ -1,6 +1,5 @@
 pub fn send_content(text: &str, content_type: &str) -> String {
-    let text_len = text.len();
-    let content = format!("Content-Type: {content_type}\r\nContent-Length: {text_len}\r\n\r\n{text}");
+    let content = format!("Content-Type: {content_type}\r\nContent-Length: {}\r\n\r\n{text}", text.len());
     ok(&content)
 }
 
@@ -19,5 +18,8 @@ pub fn not_found() -> String {
 
 fn send_request(request: &str, content: &str) -> String {
     let http_version = "HTTP/1.1";
-    format!("{http_version} {request}\r\n\r\n{content}")
+    if content == "" {
+        return format!("{http_version} {request}\r\n\r\n")
+    }
+    format!("{http_version} {request}\r\n{content}")
 }

@@ -20,7 +20,7 @@ pub struct RequestLine<'a> {
 }
 
 impl<'a> Request<'a> {
-    pub fn from(http_request: &'a Vec<String>) -> Request<'a> {
+    pub fn from(http_request: &'a Vec<String>, body: &'a str) -> Request<'a> {
         let mut headers: HashMap<&str, &str> = HashMap::new();
 
         let request_line = {
@@ -58,7 +58,7 @@ impl<'a> Request<'a> {
         Request {
             request,
             headers,
-            body = "",
+            body,
         }
     }
 }

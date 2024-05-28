@@ -24,15 +24,29 @@ fn main() {
 }
 
 fn handle_connection(mut stream: TcpStream) {
-    let buf_reader = BufReader::new(&mut stream);
-    let buffer = buf_reader
-        .lines()
-        .map(|result| result.unwrap())
-        .take_while(|line| !line.is_empty())
-        .collect();
-    println!("Buffer: {:?}", buffer);
+    let mut buf_reader = BufReader::new(&mut stream);
+    let mut headers = Vec::new();
 
-    let http_request = &http::Request::from(&buffer);
+    for line in buf_reader.by_ref().lines() {
+        let line = line.unwrap();
+        if line.is_empty() {
+            break;
+        }
+        headers.push(line);
+    }
+
+    let content_length = get_content_length(&headers);
+    let mut body = Vec::with_capacity(content_length);
+
+    let result = buf_reader.take(content_length as u64).read_to_end(&mut body);
+
+    if result.is_err() {
+        println!("Error reading body: {:?}", result.err());
+    }
+
+    let body_str = String::from_utf8(body).unwrap();
+
+    let http_request = &http::Request::from(&headers, &body_str);
 
     println!("HTTP request: {:?}", http_request);
 
@@ -41,4 +55,18 @@ fn handle_connection(mut stream: TcpStream) {
     println!("Response: {response}");
 
     stream.write_all(response.as_bytes()).unwrap();
+}
+
+fn get_content_length(headers: &Vec<String>) -> usize {
+    let mut content_length = 0;
+
+    for line in headers.iter() {
+        if line.starts_with("Content-Length") {
+            let parts = line.split(':').collect::<Vec<&str>>();
+            content_length = parts[1].trim().parse::<usize>().unwrap();
+            break;
+        }
+    }
+
+    content_length
 }

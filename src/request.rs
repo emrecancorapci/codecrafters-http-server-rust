@@ -16,6 +16,10 @@ pub fn not_found() -> String {
     send_request("404 Not Found", "")
 }
 
+pub fn method_not_allowed() -> String {
+    send_request("405 Method Not Allowed", "")
+}
+
 fn send_request(request: &str, content: &str) -> String {
     let http_version = "HTTP/1.1";
     if content == "" {

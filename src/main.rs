@@ -2,7 +2,11 @@
 use std::{ io::{ prelude::*, BufReader }, net::{ TcpListener, TcpStream }, thread };
 use itertools::Itertools;
 
-pub mod endpoint;
+mod routes;
+pub mod controller {
+    pub mod echo;
+    pub mod file;
+}
 pub mod request;
 
 #[derive(Debug)]
@@ -43,31 +47,11 @@ fn handle_connection(mut stream: TcpStream) {
 
     println!("Formatted HTTP request: {:?}", http_request);
 
-    let response = router(http_request);
+    let response = routes::router(http_request);
 
     println!("Response: {response}");
 
     stream.write_all(response.as_bytes()).unwrap();
-}
-
-fn router(http_request: &HttpRequest) -> String {
-    match http_request.path_array[0] {
-        "" => {
-            return request::ok("");
-        }
-        "echo" => {
-            return endpoint::echo(http_request);
-        }
-        "user-agent" => {
-            return request::send_content(http_request.user_agent, "text/plain");
-        }
-        "files" => {
-            return endpoint::files(http_request);
-        }
-        _ => {
-            return request::not_found();
-        }
-    }
 }
 
 fn format_request(http_request: &Vec<String>) -> HttpRequest {

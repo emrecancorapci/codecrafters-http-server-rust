@@ -13,10 +13,14 @@ pub fn ok(text: &str, content_type: &str) -> String {
     send_response("200 OK", &content_header)
 }
 
+pub fn created() -> String {
+    send_response("201 Created", "")
+}
+
 // 400
 pub fn bad_request(server_message: &str) -> String {
     println!("{server_message}");
-    send_response("400 Bad Request", "")
+    send_response("400 Bad Request", server_message)
 }
 
 pub fn not_found() -> String {
@@ -25,6 +29,13 @@ pub fn not_found() -> String {
 
 pub fn method_not_allowed() -> String {
     send_response("405 Method Not Allowed", "")
+}
+
+// 500
+
+pub fn internal_server_error(err: &str) -> String {
+    println!("{err}");
+    send_response("500 Internal Server Error", "")
 }
 
 fn send_response(request: &str, content: &str) -> String {

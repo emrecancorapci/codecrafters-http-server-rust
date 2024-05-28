@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use itertools::Itertools;
 
 pub mod response;
@@ -5,8 +7,7 @@ pub mod response;
 #[derive(Debug)]
 pub struct Request<'a> {
     pub request: RequestLine<'a>,
-    pub host: &'a str,
-    pub user_agent: &'a str,
+    pub headers: HashMap<&'a str, &'a str>,
     pub body: &'a str,
 }
 
@@ -19,7 +20,9 @@ pub struct RequestLine<'a> {
 }
 
 impl<'a> Request<'a> {
-    pub fn from(http_request: &Vec<String>) -> Request {
+    pub fn from(http_request: &'a Vec<String>) -> Request<'a> {
+        let mut headers: HashMap<&str, &str> = HashMap::new();
+
         let request_line = {
             let request_line = http_request.get(0);
 
@@ -38,36 +41,24 @@ impl<'a> Request<'a> {
             }
         };
 
-        let user_agent = {
-            let user_agent = http_request.iter().find(|line| line.starts_with("User-Agent: "));
+        for line in http_request.iter().skip(1) {
+            let header = line.split(':').collect_vec();
 
-            if user_agent.is_none() {
-                ""
-            } else {
-                &user_agent.unwrap()[12..].trim()
+            if header.len() < 2 {
+                continue;
             }
-        };
 
-        let host = {
-            let host = http_request.iter().find(|line| line.starts_with("Host: "));
+            headers.insert(header[0].trim(), header[1].trim());
+        }
 
-            if host.is_none() {
-                ""
-            } else {
-                &host.unwrap()[6..].trim()
-            }
-        };
-
-        // let body = {
-        //     let body = http_request;
-
-        // };
+        if !headers.contains_key("User-Agent") {
+            headers.insert("User-Agent", "");
+        }
 
         Request {
             request,
-            user_agent,
-            host,
-            body: "",
+            headers,
+            body = "",
         }
     }
 }

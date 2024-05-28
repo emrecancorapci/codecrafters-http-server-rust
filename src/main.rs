@@ -1,28 +1,11 @@
 #[allow(dead_code)]
 use std::{ io::{ prelude::*, BufReader }, net::{ TcpListener, TcpStream }, thread };
-use itertools::Itertools;
 
 mod routes;
+pub mod http;
 pub mod controller {
     pub mod echo;
     pub mod file;
-}
-pub mod request;
-
-#[derive(Debug)]
-pub struct HttpRequest<'a> {
-    request: Request<'a>,
-    host: &'a str,
-    user_agent: &'a str,
-    body: &'a str,
-}
-
-#[derive(Debug)]
-struct Request<'a> {
-    method: &'a str,
-    path: &'a str,
-    version: &'a str,
-    path_array: Vec<&'a str>,
 }
 
 fn main() {
@@ -45,11 +28,11 @@ fn handle_connection(mut stream: TcpStream) {
     let buffer = buf_reader
         .lines()
         .map(|result| result.unwrap())
-        //    .take_while(|line| !line.is_empty())
+        .take_while(|line| !line.is_empty())
         .collect();
     println!("Buffer: {:?}", buffer);
 
-    let http_request = &format_request(&buffer);
+    let http_request = &http::Request::from(&buffer);
 
     println!("HTTP request: {:?}", http_request);
 
@@ -58,61 +41,4 @@ fn handle_connection(mut stream: TcpStream) {
     println!("Response: {response}");
 
     stream.write_all(response.as_bytes()).unwrap();
-}
-
-fn format_request(http_request: &Vec<String>) -> HttpRequest {
-    let request_line = {
-        let request_line = http_request.get(0);
-
-        if request_line.is_none() {
-            panic!("request_line not found")
-        } else {
-            request_line.unwrap().split(' ').collect_vec()
-        }
-    };
-
-    let request = {
-        if request_line.len() < 3 {
-            panic!("request_line does not have 3 parts")
-        } else {
-            Request {
-                method: &request_line[0],
-                path: &request_line[1],
-                version: &request_line[2],
-                path_array: request_line[1][1..].split('/').collect_vec(),
-            }
-        }
-    };
-
-    let user_agent = {
-        let user_agent = http_request.iter().find(|line| line.starts_with("User-Agent: "));
-
-        if user_agent.is_none() {
-            ""
-        } else {
-            &user_agent.unwrap()[12..].trim()
-        }
-    };
-
-    let host = {
-        let host = http_request.iter().find(|line| line.starts_with("Host: "));
-
-        if host.is_none() {
-            ""
-        } else {
-            &host.unwrap()[6..].trim()
-        }
-    };
-
-    // let body = {
-    //     let body = http_request;
-
-    // };
-
-    HttpRequest {
-        request,
-        user_agent,
-        host,
-        body: "",
-    }
 }

@@ -7,7 +7,7 @@ pub mod response;
 #[derive(Debug)]
 pub struct Request<'a> {
     pub request: RequestLine<'a>,
-    pub headers: HashMap<&'a str, &'a str>,
+    pub headers: HashMap<String, String>,
     pub body: &'a str,
 }
 
@@ -21,7 +21,7 @@ pub struct RequestLine<'a> {
 
 impl<'a> Request<'a> {
     pub fn from(http_request: &'a Vec<String>, body: &'a str) -> Request<'a> {
-        let mut headers: HashMap<&str, &str> = HashMap::new();
+        let mut headers: HashMap<String, String> = HashMap::new();
 
         let request_line = {
             let request_line = http_request.get(0);
@@ -48,11 +48,14 @@ impl<'a> Request<'a> {
                 continue;
             }
 
-            headers.insert(header[0].trim(), header[1].trim());
+            let key: String = header[0].trim().to_lowercase().to_string();
+
+            headers.insert(key, header[1].trim().to_string());
         }
 
+        // Check if delete is needed here
         if !headers.contains_key("User-Agent") {
-            headers.insert("User-Agent", "");
+            headers.insert("User-Agent".to_string(), "".to_string());
         }
 
         Request {

@@ -12,7 +12,7 @@ pub fn get(http_request: &Request) -> String {
             .to_string();
     }
 
-    let headers: HashMap<&str, &str> = {
+    let headers: HashMap<String, String> = {
         let mut headers = HashMap::new();
         let accept_encoding = http_request.headers.get("accept-encoding");
 
@@ -20,7 +20,7 @@ pub fn get(http_request: &Request) -> String {
             None => headers,
             Some(encoding) => {
                 if encoding != "invalid-encoding" {
-                    headers.insert("Content-Encoding", encoding);
+                    headers.insert(String::from("Content-Encoding"), encoding.to_string());
                 }
                 headers
             }

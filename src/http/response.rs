@@ -4,7 +4,7 @@ trait HashMapExt {
     fn to_string(&self) -> String;
 }
 
-impl HashMapExt for HashMap<&str, &str> {
+impl HashMapExt for HashMap<String, String> {
     fn to_string(&self) -> String {
         let mut result = String::new();
 
@@ -55,7 +55,7 @@ impl StatusCode {
 pub struct Response<'a> {
     http_version: &'a str,
     status_code: &'a StatusCode,
-    headers: HashMap<&'a str, &'a str>,
+    headers: HashMap<String, String>,
     body: &'a str,
 }
 
@@ -73,13 +73,13 @@ impl Response<'_> {
         let mut headers = self.headers.clone();
         let length = body.len().to_string();
 
-        headers.insert("Content-Length", &length);
-        headers.insert("Content-Type", content_type);
+        headers.insert(String::from("Content-Length"), length);
+        headers.insert(String::from("Content-Type"), content_type.to_string());
 
         Response {
             http_version: self.http_version,
             status_code: self.status_code,
-            headers: self.headers.clone(),
+            headers: headers.clone(),
             body,
         }
     }
@@ -88,7 +88,7 @@ impl Response<'_> {
         self.body(body, "text/plain")
     }
 
-    pub fn headers<'a>(&'a self, _headers: HashMap<&'a str, &'a str>) -> Response {
+    pub fn headers<'a>(&'a self, _headers: HashMap<String, String>) -> Response {
         let mut headers = self.headers.clone();
         headers.extend(_headers);
 
@@ -111,6 +111,7 @@ impl Response<'_> {
 
         if self.body != "" {
             headers.push_str(&format!("Content-Length: {}\r\n", self.body.len()));
+
             if !headers.contains("Content-Type") {
                 headers.push_str("Content-Type: text/plain\r\n");
             }

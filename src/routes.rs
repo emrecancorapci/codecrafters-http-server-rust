@@ -15,6 +15,7 @@ pub fn router(http_request: &Request) -> String {
         "echo" => { echo::router(http_request) }
         "files" => { file::router(http_request) }
         "web" => { web::router(http_request)}
+        "teapot" => { response::i_am_a_teapot()}
         _ => { response::not_found() }
     }
 }

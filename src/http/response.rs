@@ -176,6 +176,10 @@ pub fn method_not_allowed() -> String {
     Response::from(&StatusCode::MethodNotAllowed).debug().to_string()
 }
 
+pub fn i_am_a_teapot() -> String {
+    Response::from(&StatusCode::IAmATeapot).debug().to_string()
+}
+
 // 500
 
 pub fn internal_server_error(err: &str) -> String {

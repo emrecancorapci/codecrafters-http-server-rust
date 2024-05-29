@@ -1,4 +1,4 @@
-use std::{ collections::HashMap, env, fs, io::Write, path::PathBuf };
+use std::{ env, fs, io::Write, path::PathBuf };
 
 use crate::http::{ response, Request };
 

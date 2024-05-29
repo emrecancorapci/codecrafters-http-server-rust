@@ -16,7 +16,7 @@ impl HashMapExt for HashMap<&str, &str> {
     }
 }
 
-enum StatusCode {
+pub enum StatusCode {
     Ok,
     Created,
     BadRequest,
@@ -27,7 +27,7 @@ enum StatusCode {
 }
 
 impl StatusCode {
-    fn to_string(&self) -> &str {
+    pub fn to_string(&self) -> &str {
         match self {
             StatusCode::Ok => "200",
             StatusCode::Created => "201",
@@ -39,7 +39,7 @@ impl StatusCode {
         }
     }
 
-    fn get_message(&self) -> &str {
+    pub fn get_message(&self) -> &str {
         match self {
             StatusCode::Ok => "OK",
             StatusCode::Created => "Created",
@@ -52,7 +52,7 @@ impl StatusCode {
     }
 }
 
-struct Response<'a> {
+pub struct Response<'a> {
     http_version: &'a str,
     status_code: &'a StatusCode,
     headers: HashMap<&'a str, &'a str>,
@@ -60,7 +60,7 @@ struct Response<'a> {
 }
 
 impl Response<'_> {
-    fn from<'a>(status_code: &'a StatusCode) -> Response<'a> {
+    pub fn from<'a>(status_code: &'a StatusCode) -> Response<'a> {
         Response {
             http_version: "HTTP/1.1",
             status_code,
@@ -69,7 +69,7 @@ impl Response<'_> {
         }
     }
 
-    fn body<'a>(&'a self, body: &'a str, content_type: &'a str) -> Response {
+    pub fn body<'a>(&'a self, body: &'a str, content_type: &'a str) -> Response {
         let mut headers = self.headers.clone();
         let length = body.len().to_string();
 
@@ -84,11 +84,11 @@ impl Response<'_> {
         }
     }
 
-    fn text<'a>(&'a self, body: &'a str) -> Response {
+    pub fn text<'a>(&'a self, body: &'a str) -> Response {
         self.body(body, "text/plain")
     }
 
-    fn headers<'a>(&'a self, _headers: HashMap<&'a str, &'a str>) -> Response {
+    pub fn headers<'a>(&'a self, _headers: HashMap<&'a str, &'a str>) -> Response {
         let mut headers = self.headers.clone();
         headers.extend(_headers);
 
@@ -100,7 +100,7 @@ impl Response<'_> {
         }
     }
 
-    fn to_string(&self) -> String {
+    pub fn to_string(&self) -> String {
         let mut headers = String::new();
 
         if self.headers.len() > 0 {
@@ -125,7 +125,7 @@ impl Response<'_> {
         )
     }
 
-    fn debug(&self) -> &Response {
+    pub fn debug(&self) -> &Response {
         println!("HTTP version: {}", self.http_version);
         println!("Status code: {}", self.status_code.to_string());
         println!("Status message: {}", self.status_code.get_message());
@@ -134,54 +134,4 @@ impl Response<'_> {
 
         self
     }
-}
-
-pub fn ok() -> String {
-    Response::from(&StatusCode::Ok).to_string()
-}
-
-pub fn ok_text(text: &str) -> String {
-    Response::from(&StatusCode::Ok).text(text).to_string()
-}
-
-pub fn ok_body(body: &str, content_type: &str) -> String {
-    Response::from(&StatusCode::Ok).body(body, content_type).to_string()
-}
-
-pub fn ok_headers(headers: HashMap<&str, &str>) -> String {
-    Response::from(&StatusCode::Ok).headers(headers).to_string()
-}
-
-pub fn ok_body_headers(body: &str, content_type: &str, headers: HashMap<&str, &str>) -> String {
-    Response::from(&StatusCode::Ok)
-        .body(body, content_type)
-        .headers(headers)
-        .to_string()
-}
-
-pub fn created() -> String {
-    Response::from(&StatusCode::Created).to_string()
-}
-
-// 400
-pub fn bad_request(server_message: &str) -> String {
-    Response::from(&StatusCode::BadRequest).text(server_message).debug().to_string()
-}
-
-pub fn not_found() -> String {
-    Response::from(&StatusCode::NotFound).debug().to_string()
-}
-
-pub fn method_not_allowed() -> String {
-    Response::from(&StatusCode::MethodNotAllowed).debug().to_string()
-}
-
-pub fn i_am_a_teapot() -> String {
-    Response::from(&StatusCode::IAmATeapot).debug().to_string()
-}
-
-// 500
-
-pub fn internal_server_error(err: &str) -> String {
-    Response::from(&StatusCode::InternalServerError).text(err).debug().to_string()
 }

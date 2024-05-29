@@ -1,11 +1,14 @@
-use crate::http::response;
+use crate::http::response::{ Response, StatusCode };
 
 pub fn get() -> String {
     let index = std::fs::read_to_string("./public/index.html");
 
     if index.is_err() {
-        return response::not_found();
+        return Response::from(&StatusCode::NotFound)
+            .text(&index.err().unwrap().to_string())
+            .debug()
+            .to_string();
     }
 
-    response::ok_text(&index.unwrap())
+    Response::from(&StatusCode::Ok).body(&index.unwrap(), "text/html").to_string()
 }

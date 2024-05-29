@@ -1,6 +1,6 @@
 use std::{ env, fs, io::Write, path::PathBuf };
 
-use crate::http::{ response, Request };
+use crate::http::{ response::{ Response, StatusCode }, Request };
 
 pub fn get(http_request: &Request) -> String {
     let file_name = http_request.request.path_array[1];
@@ -10,7 +10,10 @@ pub fn get(http_request: &Request) -> String {
         if env_args.len() > 1 && env_args[1] == "--directory" {
             env_args[2].clone()
         } else {
-            return response::bad_request("directory not found");
+            return Response::from(&StatusCode::BadRequest)
+                .text("directory not found")
+                .debug()
+                .to_string();
         }
     };
 
@@ -22,10 +25,13 @@ pub fn get(http_request: &Request) -> String {
     let file = fs::read_to_string(directory);
 
     if file.is_err() {
-        return response::not_found();
+        return Response::from(&StatusCode::NotFound)
+            .text(&file.err().unwrap().to_string())
+            .debug()
+            .to_string();
     }
 
-    response::ok_body(&file.unwrap(), "application/octet-stream")
+    Response::from(&StatusCode::Ok).body(&file.unwrap(), "application/octet-stream").to_string()
 }
 
 pub fn post(http_request: &Request) -> String {
@@ -36,7 +42,10 @@ pub fn post(http_request: &Request) -> String {
         if env_args.len() > 1 && env_args[1] == "--directory" {
             env_args[2].clone()
         } else {
-            return response::bad_request("directory not found");
+            return Response::from(&StatusCode::BadRequest)
+                .text("directory not found")
+                .debug()
+                .to_string();
         }
     };
 
@@ -46,13 +55,20 @@ pub fn post(http_request: &Request) -> String {
     let file = fs::File::create(path);
 
     if file.is_err() {
-        return response::internal_server_error(&file.err().unwrap().to_string());
+        return Response::from(&StatusCode::BadRequest)
+            .text(&file.err().unwrap().to_string())
+            .debug()
+            .to_string();
     }
 
     let result = &file.unwrap().write_all(http_request.body.as_bytes());
 
     match result {
-        Ok(_) => response::created(),
-        Err(err) => response::internal_server_error(&err.to_string()),
+        Ok(_) => Response::from(&StatusCode::Created).to_string(),
+        Err(err) =>
+            Response::from(&StatusCode::InternalServerError)
+                .text(&err.to_string())
+                .debug()
+                .to_string(),
     }
 }

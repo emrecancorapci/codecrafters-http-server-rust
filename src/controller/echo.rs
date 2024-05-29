@@ -19,7 +19,7 @@ pub fn get(http_request: &Request) -> String {
         match accept_encoding {
             None => headers,
             Some(encoding) => {
-                headers.insert("accept-encoding", encoding);
+                headers.insert("Accept-Encoding", encoding);
                 headers
             }
         }

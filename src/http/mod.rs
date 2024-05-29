@@ -53,11 +53,6 @@ impl<'a> Request<'a> {
             headers.insert(key, header[1].trim().to_string());
         }
 
-        // Check if delete is needed here
-        if !headers.contains_key("User-Agent") {
-            headers.insert("User-Agent".to_string(), "".to_string());
-        }
-
         Request {
             request,
             headers,

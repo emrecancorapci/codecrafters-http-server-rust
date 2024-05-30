@@ -3,6 +3,9 @@ use std::{ io::{ prelude::*, BufReader }, net::{ TcpListener, TcpStream }, threa
 
 mod routes;
 pub mod http;
+pub mod extensions{
+    pub mod hash_map;
+}
 pub mod controller {
     pub mod echo;
     pub mod file;

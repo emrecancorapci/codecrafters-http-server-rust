@@ -1,7 +1,7 @@
 #[allow(dead_code)]
 use std::{ io::prelude::*, net::{ TcpListener, TcpStream }, thread };
 
-use http::{parser::parse_stream, request::HttpRequest};
+use http::{ parser::parse_stream, request::HttpRequest, response::{ HttpResponse, StatusCode } };
 
 mod routes;
 pub mod http {
@@ -35,11 +35,24 @@ fn main() {
 }
 
 fn handle_connection(mut stream: TcpStream) {
-    let (headers, body) = parse_stream(&stream);
-    let http_request = &HttpRequest::from(&headers, &body);
+    let request = parse_stream(&stream);
 
-    let response = routes::router(http_request);
-    println!("HttpResponse: {response}");
+    match request {
+        Ok((headers, body)) => {
+            let http_request = &HttpRequest::from(&headers, &body);
 
-    stream.write_all(response.as_bytes()).unwrap();
+            let response = routes::router(http_request);
+            println!("HttpResponse:\r\n{response}");
+
+            stream.write_all(response.as_bytes()).unwrap();
+        }
+        Err(error) => {
+            stream
+                .write_all(
+                    HttpResponse::from(&StatusCode::BadRequest).text(&error).to_string().as_bytes()
+                )
+                .unwrap();
+            return;
+        }
+    }
 }

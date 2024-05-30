@@ -1,6 +1,6 @@
-use std::{ io::{BufReader, Read, BufRead}, net::TcpStream };
+use std::{ io::{ BufRead, BufReader, Read }, net::TcpStream };
 
-pub fn parse_stream(mut stream: &TcpStream) -> (Vec<String>, String) {
+pub fn parse_stream(mut stream: &TcpStream) -> Result<(Vec<String>, String), String> {
     let mut buf_reader = BufReader::new(&mut stream);
     let mut headers = Vec::new();
 
@@ -14,23 +14,21 @@ pub fn parse_stream(mut stream: &TcpStream) -> (Vec<String>, String) {
 
     let content_length = get_content_length(&headers);
 
-    if content_length == 0 {
-        return (headers, String::new());
+    match content_length {
+        Some(content_length) => {
+            let mut body = Vec::with_capacity(content_length);
+            let result = buf_reader.take(content_length as u64).read_to_end(&mut body);
+
+            match result {
+                Ok(_) => { Ok((headers, String::from_utf8(body).unwrap())) }
+                Err(error) => { Err(format!("Error reading body: {}", error.to_string())) }
+            }
+        }
+        None => { Ok((headers, String::from(""))) }
     }
-
-    let mut body = Vec::with_capacity(content_length);
-    let result = buf_reader.take(content_length as u64).read_to_end(&mut body);
-
-    if result.is_err() {
-        println!("Error reading body: {:?}", result.err());
-    }
-
-    let body_str = String::from_utf8(body).unwrap();
-
-    (headers, body_str)
 }
 
-fn get_content_length(headers: &Vec<String>) -> usize {
+fn get_content_length(headers: &Vec<String>) -> Option<usize> {
     let mut content_length = 0;
 
     for line in headers.iter() {
@@ -41,5 +39,9 @@ fn get_content_length(headers: &Vec<String>) -> usize {
         }
     }
 
-    content_length
+    if content_length == 0 {
+        return None;
+    }
+
+    Some(content_length)
 }

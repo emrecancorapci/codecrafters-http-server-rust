@@ -117,7 +117,7 @@ impl StatusCode {
         match self {
             StatusCode::Ok => "OK",
             StatusCode::Created => "Created",
-            StatusCode::BadRequest => "Bad HttpRequest",
+            StatusCode::BadRequest => "Bad Request",
             StatusCode::NotFound => "Not Found",
             StatusCode::MethodNotAllowed => "Method Not Allowed",
             StatusCode::IAmATeapot => "I'm a teapot",

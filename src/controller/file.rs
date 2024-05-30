@@ -1,6 +1,9 @@
 use std::{ fs, io::Write, path::PathBuf };
 
-use crate::{ helpers::get_env_arg, http::{ response::{ HttpResponse, StatusCode }, request::HttpRequest } };
+use crate::{
+    helpers::get_env_arg,
+    http::{ response::{ HttpResponse, StatusCode }, request::HttpRequest },
+};
 
 pub fn get(http_request: &HttpRequest) -> String {
     let file_name = http_request.request.path_array[1];
@@ -9,14 +12,19 @@ pub fn get(http_request: &HttpRequest) -> String {
     let path = PathBuf::from(&directory).join(file_name);
     let file = fs::read_to_string(path);
 
-    if file.is_err() {
-        return HttpResponse::from(&StatusCode::NotFound)
-            .text(&file.err().unwrap().to_string())
-            .debug()
-            .to_string();
+    match file {
+        Ok(file) => {
+            return HttpResponse::from(&StatusCode::Ok)
+                .body(&file, "application/octet-stream")
+                .to_string();
+        }
+        Err(err) => {
+            return HttpResponse::from(&StatusCode::NotFound)
+                .text(&err.to_string())
+                .debug()
+                .to_string();
+        }
     }
-
-    HttpResponse::from(&StatusCode::Ok).body(&file.unwrap(), "application/octet-stream").to_string()
 }
 
 pub fn post(http_request: &HttpRequest) -> String {

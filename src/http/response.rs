@@ -1,56 +1,44 @@
 use std::collections::HashMap;
 
-use crate::extensions::hash_map::HashMapExt;
-
-pub struct HttpResponse<'a> {
-    http_version: &'a str,
-    status_code: &'a StatusCode,
+pub struct HttpResponse {
+    debug_mode: bool,
+    http_version: String,
+    status_code: StatusCode,
     headers: HashMap<String, String>,
-    body: &'a str,
+    body: Vec<u8>,
 }
 
-impl HttpResponse<'_> {
-    pub fn from<'a>(status_code: &'a StatusCode) -> HttpResponse<'a> {
+impl HttpResponse {
+    pub fn new() -> HttpResponse {
         HttpResponse {
-            http_version: "HTTP/1.1",
-            status_code,
+            debug_mode: false,
+            http_version: "HTTP/1.1".to_string(),
+            status_code: StatusCode::Ok,
             headers: HashMap::new(),
-            body: "",
+            body: Vec::new(),
         }
     }
-
-    pub fn body<'a>(&'a self, body: &'a str, content_type: &'a str) -> HttpResponse {
-        let mut headers = self.headers.clone();
-        let length = body.len().to_string();
-
-        headers.insert(String::from("Content-Length"), length);
-        headers.insert(String::from("Content-Type"), content_type.to_string());
-
-        HttpResponse {
-            http_version: self.http_version,
-            status_code: self.status_code,
-            headers: headers.clone(),
-            body,
+    pub fn status(&mut self, status_code: StatusCode) -> &mut HttpResponse {
+        self.status_code = status_code;
+        self
+    }
+    pub fn body(&mut self, body: Vec<u8>, content_type: &str) -> &mut HttpResponse {
+        self.body = body.clone();
+        self.headers.insert(String::from("Content-Length"), body.len().to_string());
+        self.headers.insert(String::from("Content-Type"), content_type.to_string());
+        self
+    }
+    pub fn headers(&mut self, headers: HashMap<String, String>) -> &mut HttpResponse {
+        self.headers.extend(headers);
+        self
+    }
+    pub fn debug_msg(&mut self, msg: &str) -> &mut HttpResponse {
+        if self.debug_mode {
+            println!("{}", msg);
         }
+        self
     }
-
-    pub fn text<'a>(&'a self, body: &'a str) -> HttpResponse {
-        self.body(body, "text/plain")
-    }
-
-    pub fn headers<'a>(&'a self, _headers: HashMap<String, String>) -> HttpResponse {
-        let mut headers = self.headers.clone();
-        headers.extend(_headers);
-
-        HttpResponse {
-            http_version: self.http_version,
-            status_code: self.status_code,
-            headers,
-            body: self.body,
-        }
-    }
-
-    pub fn to_string(&self) -> String {
+    pub fn as_bytes(&self) -> Vec<u8> {
         let mut headers = String::new();
 
         if self.headers.len() > 0 {
@@ -59,7 +47,7 @@ impl HttpResponse<'_> {
             }
         }
 
-        if self.body != "" {
+        if self.body.len() > 0 {
             if !headers.contains("Content-Length") {
                 println!("Content-Length not found even though body is present");
                 headers.push_str(&format!("Content-Length: {}\r\n", self.body.len()));
@@ -70,22 +58,19 @@ impl HttpResponse<'_> {
             }
         }
 
-        format!(
-            "{http_version} {status_code} {status_msg}\r\n{headers}\r\n{body}",
+        let mut header = format!(
+            "{http_version} {status_code} {status_msg}\r\n{headers}\r\n",
             http_version = self.http_version,
             status_code = self.status_code.to_string(),
-            status_msg = self.status_code.get_message(),
-            body = self.body
-        )
+            status_msg = self.status_code.get_message()
+        ).into_bytes();
+
+        header.extend_from_slice(&self.body);
+
+        header
     }
-
-    pub fn debug(&self) -> &HttpResponse {
-        println!("HTTP version: {}", self.http_version);
-        println!("Status code: {}", self.status_code.to_string());
-        println!("Status message: {}", self.status_code.get_message());
-        println!("Headers: {}", &self.headers.to_string());
-        println!("Body: {}", self.body);
-
+    pub fn debug_on(&mut self) -> &mut HttpResponse {
+        self.debug_mode = true;
         self
     }
 }

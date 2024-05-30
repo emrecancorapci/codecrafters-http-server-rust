@@ -1,8 +1,13 @@
-use crate::{ controller::echo::get, http::{ response::{HttpResponse, StatusCode}, request::HttpRequest } };
+use crate::{
+    controller::echo::get,
+    http::{ request::HttpRequest, response::{ HttpResponse, StatusCode } },
+};
 
-pub fn router(http_request: &HttpRequest) -> String {
-    match http_request.request.method {
-        "GET" => { get(http_request) }
-        _ => { HttpResponse::from(&StatusCode::MethodNotAllowed).to_string() }
+pub fn router(request: &HttpRequest, response: &mut HttpResponse) {
+    match request.request.method {
+        "GET" => { get(request, response) }
+        _ => {
+            response.status(StatusCode::MethodNotAllowed);
+        }
     }
 }

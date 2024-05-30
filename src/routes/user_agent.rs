@@ -1,17 +1,23 @@
-use crate::http::{ response::{ HttpResponse, StatusCode }, request::HttpRequest };
+use crate::http::{ request::HttpRequest, response::{ HttpResponse, StatusCode } };
 
-pub fn router(http_request: &HttpRequest) -> String {
-    let user_agent = http_request.headers.get("user-agent");
-
-    if user_agent.is_none() {
-        return HttpResponse::from(&StatusCode::BadRequest)
-            .text("User-Agent header not found")
-            .debug()
-            .to_string();
-    }
-
-    match http_request.request.method {
-        "GET" => { HttpResponse::from(&StatusCode::Ok).text(user_agent.unwrap()).to_string() }
-        _ => { HttpResponse::from(&StatusCode::MethodNotAllowed).to_string() }
+pub fn router(request: &HttpRequest, response: &mut HttpResponse) {
+    match request.headers.get("user-agent") {
+        Some(user_agent) => {
+            match request.request.method {
+                "GET" => {
+                    response
+                        .status(StatusCode::Ok)
+                        .body(user_agent.to_string().into_bytes(), "text/plain");
+                }
+                _ => {
+                    response.status(StatusCode::MethodNotAllowed);
+                }
+            }
+        }
+        None => {
+            response
+                .status(StatusCode::BadRequest)
+                .body("User-Agent header not found".to_string().into_bytes(), "text/plain");
+        }
     }
 }

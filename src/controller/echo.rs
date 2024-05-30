@@ -5,43 +5,38 @@ use flate2::{ write::GzEncoder, Compression };
 
 use crate::http::{ request::HttpRequest, response::{ HttpResponse, StatusCode } };
 
-pub fn get(http_request: &HttpRequest) -> String {
-    let echo_text = http_request.request.path_array[1];
+pub fn get(request: &HttpRequest, response: &mut HttpResponse) {
+    let echo_text = request.request.path_array[1];
 
     if echo_text.is_empty() {
-        return HttpResponse::from(&StatusCode::BadRequest)
-            .text("echo_text is empty")
-            .debug()
-            .to_string();
+        response.status(StatusCode::BadRequest).debug_msg("echo_text is empty");
+        return;
     }
 
-    match get_encoding(http_request) {
+    match get_encoding(request) {
         Some(encoding_header) => {
             match encode(echo_text) {
                 Ok(compressed_string) => {
-                    return HttpResponse::from(&StatusCode::Ok)
-                        .text(&compressed_string)
-                        .headers(encoding_header)
-                        .to_string();
+                    response
+                        .status(StatusCode::Ok)
+                        .body(compressed_string, "text/plain")
+                        .headers(encoding_header);
                 }
 
                 Err(e) => {
-                    return HttpResponse::from(&StatusCode::InternalServerError)
-                        .text(&e)
-                        .debug()
-                        .to_string();
+                    response.status(StatusCode::InternalServerError).debug_msg(&e);
                 }
             }
         }
         None => {
-            return HttpResponse::from(&StatusCode::Ok).text(echo_text).to_string();
+            response.status(StatusCode::Ok).body(echo_text.as_bytes().to_vec(), "text/plain");
         }
     }
 }
 
-fn get_encoding(http_request: &HttpRequest) -> Option<HashMap<String, String>> {
+fn get_encoding(request: &HttpRequest) -> Option<HashMap<String, String>> {
     let mut headers: HashMap<String, String> = HashMap::new();
-    let accept_encoding = http_request.headers.get("accept-encoding");
+    let accept_encoding = request.headers.get("accept-encoding");
 
     if accept_encoding.is_some() {
         let encodings = accept_encoding.unwrap().split(',').collect_vec();
@@ -58,7 +53,7 @@ fn get_encoding(http_request: &HttpRequest) -> Option<HashMap<String, String>> {
     None
 }
 
-fn encode(echo_text: &str) -> Result<String, String> {
+fn encode(echo_text: &str) -> Result<Vec<u8>, String> {
     let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
 
     match encoder.write_all(echo_text.as_bytes()) {
@@ -70,14 +65,7 @@ fn encode(echo_text: &str) -> Result<String, String> {
 
     match encoder.finish() {
         Ok(compressed_bytes) => {
-            match String::from_utf8(compressed_bytes) {
-                Ok(compressed_string) => {
-                    return Ok(compressed_string);
-                }
-                Err(e) => {
-                    return Err(format!("Error: {}", e));
-                }
-            }
+            return Ok(compressed_bytes);
         }
         Err(e) => {
             return Err(format!("Error: {}", e));

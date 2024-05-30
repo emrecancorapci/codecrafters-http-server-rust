@@ -1,28 +1,13 @@
-use std::{ env, fs, io::Write, path::PathBuf };
+use std::{ fs, io::Write, path::PathBuf };
 
-use crate::http::{ response::{ Response, StatusCode }, Request };
+use crate::{ helpers::get_env_arg, http::{ response::{ Response, StatusCode }, Request } };
 
 pub fn get(http_request: &Request) -> String {
     let file_name = http_request.request.path_array[1];
-    let env_args: Vec<String> = env::args().collect();
+    let directory = get_env_arg("--directory");
 
-    let mut directory = {
-        if env_args.len() > 1 && env_args[1] == "--directory" {
-            env_args[2].clone()
-        } else {
-            return Response::from(&StatusCode::BadRequest)
-                .text("directory not found")
-                .debug()
-                .to_string();
-        }
-    };
-
-    println!("directory: {directory}");
-    println!("file_name: {file_name}");
-
-    directory.push_str(&file_name);
-
-    let file = fs::read_to_string(directory);
+    let path = PathBuf::from(&directory).join(file_name);
+    let file = fs::read_to_string(path);
 
     if file.is_err() {
         return Response::from(&StatusCode::NotFound)
@@ -36,18 +21,7 @@ pub fn get(http_request: &Request) -> String {
 
 pub fn post(http_request: &Request) -> String {
     let file_name = http_request.request.path_array[1];
-    let env_args: Vec<String> = env::args().collect();
-
-    let directory = {
-        if env_args.len() > 1 && env_args[1] == "--directory" {
-            env_args[2].clone()
-        } else {
-            return Response::from(&StatusCode::BadRequest)
-                .text("directory not found")
-                .debug()
-                .to_string();
-        }
-    };
+    let directory = get_env_arg("--directory");
 
     fs::create_dir_all(&directory).unwrap();
 

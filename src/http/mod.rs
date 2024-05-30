@@ -1,17 +1,15 @@
 use std::collections::HashMap;
-
 use itertools::Itertools;
+use crate::extensions::hash_map::HashMapExt;
 
 pub mod response;
 
-#[derive(Debug)]
 pub struct Request<'a> {
     pub request: RequestLine<'a>,
     pub headers: HashMap<String, String>,
     pub body: &'a str,
 }
 
-#[derive(Debug)]
 pub struct RequestLine<'a> {
     pub method: &'a str,
     pub path: &'a str,
@@ -59,6 +57,17 @@ impl<'a> Request<'a> {
             body,
         }
     }
+    pub fn debug(&self) {
+        println!("{}", self.to_string());
+    }
+    fn to_string(&self) -> String {
+        format!(
+            "Request Line: {}\r\n Headers: {}\r\n Body: {}",
+            self.request.to_string(),
+            self.headers.to_string(),
+            self.body
+        )
+    }
 }
 
 impl<'a> RequestLine<'a> {
@@ -72,5 +81,8 @@ impl<'a> RequestLine<'a> {
             version,
             path_array: path[1..].split('/').collect_vec(),
         }
+    }
+    pub fn to_string(&self) -> String {
+        format!("{} {} {}", self.method, self.path, self.version)
     }
 }

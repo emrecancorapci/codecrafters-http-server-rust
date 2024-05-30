@@ -96,19 +96,22 @@ impl Response<'_> {
         }
 
         if self.body != "" {
-            headers.push_str(&format!("Content-Length: {}\r\n", self.body.len()));
-
+            if !headers.contains("Content-Length") {
+                println!("Content-Length not found even though body is present");
+                headers.push_str(&format!("Content-Length: {}\r\n", self.body.len()));
+            }
             if !headers.contains("Content-Type") {
+                println!("Content-Type not found even though body is present");
                 headers.push_str("Content-Type: text/plain\r\n");
             }
         }
 
         format!(
-            "{} {} {}\r\n{headers}\r\n{}",
-            self.http_version,
-            self.status_code.to_string(),
-            self.status_code.get_message(),
-            self.body
+            "{http_version} {status_code} {status_msg}\r\n{headers}\r\n{body}",
+            http_version = self.http_version,
+            status_code = self.status_code.to_string(),
+            status_msg = self.status_code.get_message(),
+            body = self.body
         )
     }
 

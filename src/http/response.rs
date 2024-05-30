@@ -2,52 +2,16 @@ use std::collections::HashMap;
 
 use crate::extensions::hash_map::HashMapExt;
 
-pub enum StatusCode {
-    Ok,
-    Created,
-    BadRequest,
-    NotFound,
-    MethodNotAllowed,
-    IAmATeapot,
-    InternalServerError,
-}
-
-impl StatusCode {
-    pub fn to_string(&self) -> &str {
-        match self {
-            StatusCode::Ok => "200",
-            StatusCode::Created => "201",
-            StatusCode::BadRequest => "400",
-            StatusCode::NotFound => "404",
-            StatusCode::MethodNotAllowed => "405",
-            StatusCode::IAmATeapot => "418",
-            StatusCode::InternalServerError => "500",
-        }
-    }
-
-    pub fn get_message(&self) -> &str {
-        match self {
-            StatusCode::Ok => "OK",
-            StatusCode::Created => "Created",
-            StatusCode::BadRequest => "Bad Request",
-            StatusCode::NotFound => "Not Found",
-            StatusCode::MethodNotAllowed => "Method Not Allowed",
-            StatusCode::IAmATeapot => "I'm a teapot",
-            StatusCode::InternalServerError => "Internal Server Error",
-        }
-    }
-}
-
-pub struct Response<'a> {
+pub struct HttpResponse<'a> {
     http_version: &'a str,
     status_code: &'a StatusCode,
     headers: HashMap<String, String>,
     body: &'a str,
 }
 
-impl Response<'_> {
-    pub fn from<'a>(status_code: &'a StatusCode) -> Response<'a> {
-        Response {
+impl HttpResponse<'_> {
+    pub fn from<'a>(status_code: &'a StatusCode) -> HttpResponse<'a> {
+        HttpResponse {
             http_version: "HTTP/1.1",
             status_code,
             headers: HashMap::new(),
@@ -55,14 +19,14 @@ impl Response<'_> {
         }
     }
 
-    pub fn body<'a>(&'a self, body: &'a str, content_type: &'a str) -> Response {
+    pub fn body<'a>(&'a self, body: &'a str, content_type: &'a str) -> HttpResponse {
         let mut headers = self.headers.clone();
         let length = body.len().to_string();
 
         headers.insert(String::from("Content-Length"), length);
         headers.insert(String::from("Content-Type"), content_type.to_string());
 
-        Response {
+        HttpResponse {
             http_version: self.http_version,
             status_code: self.status_code,
             headers: headers.clone(),
@@ -70,15 +34,15 @@ impl Response<'_> {
         }
     }
 
-    pub fn text<'a>(&'a self, body: &'a str) -> Response {
+    pub fn text<'a>(&'a self, body: &'a str) -> HttpResponse {
         self.body(body, "text/plain")
     }
 
-    pub fn headers<'a>(&'a self, _headers: HashMap<String, String>) -> Response {
+    pub fn headers<'a>(&'a self, _headers: HashMap<String, String>) -> HttpResponse {
         let mut headers = self.headers.clone();
         headers.extend(_headers);
 
-        Response {
+        HttpResponse {
             http_version: self.http_version,
             status_code: self.status_code,
             headers,
@@ -115,7 +79,7 @@ impl Response<'_> {
         )
     }
 
-    pub fn debug(&self) -> &Response {
+    pub fn debug(&self) -> &HttpResponse {
         println!("HTTP version: {}", self.http_version);
         println!("Status code: {}", self.status_code.to_string());
         println!("Status message: {}", self.status_code.get_message());
@@ -123,5 +87,41 @@ impl Response<'_> {
         println!("Body: {}", self.body);
 
         self
+    }
+}
+
+pub enum StatusCode {
+    Ok,
+    Created,
+    BadRequest,
+    NotFound,
+    MethodNotAllowed,
+    IAmATeapot,
+    InternalServerError,
+}
+
+impl StatusCode {
+    pub fn to_string(&self) -> &str {
+        match self {
+            StatusCode::Ok => "200",
+            StatusCode::Created => "201",
+            StatusCode::BadRequest => "400",
+            StatusCode::NotFound => "404",
+            StatusCode::MethodNotAllowed => "405",
+            StatusCode::IAmATeapot => "418",
+            StatusCode::InternalServerError => "500",
+        }
+    }
+
+    pub fn get_message(&self) -> &str {
+        match self {
+            StatusCode::Ok => "OK",
+            StatusCode::Created => "Created",
+            StatusCode::BadRequest => "Bad HttpRequest",
+            StatusCode::NotFound => "Not Found",
+            StatusCode::MethodNotAllowed => "Method Not Allowed",
+            StatusCode::IAmATeapot => "I'm a teapot",
+            StatusCode::InternalServerError => "Internal Server Error",
+        }
     }
 }

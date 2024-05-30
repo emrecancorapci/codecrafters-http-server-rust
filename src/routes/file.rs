@@ -1,9 +1,9 @@
-use crate::{ controller::file::{get, post}, http::{ response::{Response, StatusCode}, Request } };
+use crate::{ controller::file::{get, post}, http::{ response::{HttpResponse, StatusCode}, request::HttpRequest } };
 
-pub fn router(http_request: &Request) -> String {
+pub fn router(http_request: &HttpRequest) -> String {
     match http_request.request.method {
         "GET" => { get(http_request) }
         "POST" => { post(http_request) }
-        _ => { Response::from(&StatusCode::MethodNotAllowed).to_string() }
+        _ => { HttpResponse::from(&StatusCode::MethodNotAllowed).to_string() }
     }
 }

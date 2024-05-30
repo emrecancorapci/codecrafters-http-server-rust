@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use crate::http::{ response::{ Response, StatusCode }, Request };
+use crate::http::{ response::{ HttpResponse, StatusCode }, request::HttpRequest };
 
-pub fn get(http_request: &Request) -> String {
+pub fn get(http_request: &HttpRequest) -> String {
     let echo_text = http_request.request.path_array[1];
 
     if echo_text.is_empty() {
-        return Response::from(&StatusCode::BadRequest)
+        return HttpResponse::from(&StatusCode::BadRequest)
             .text("echo_text is empty")
             .debug()
             .to_string();
@@ -28,8 +28,8 @@ pub fn get(http_request: &Request) -> String {
     };
 
     if headers.len() > 0 {
-        return Response::from(&StatusCode::Ok).headers(headers).text(echo_text).to_string();
+        return HttpResponse::from(&StatusCode::Ok).headers(headers).text(echo_text).to_string();
     } else {
-        return Response::from(&StatusCode::Ok).text(echo_text).to_string();
+        return HttpResponse::from(&StatusCode::Ok).text(echo_text).to_string();
     }
 }

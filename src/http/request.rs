@@ -2,9 +2,7 @@ use std::collections::HashMap;
 use itertools::Itertools;
 use crate::extensions::hash_map::HashMapExt;
 
-pub mod response;
-
-pub struct Request<'a> {
+pub struct HttpRequest<'a> {
     pub request: RequestLine<'a>,
     pub headers: HashMap<String, String>,
     pub body: &'a str,
@@ -17,8 +15,8 @@ pub struct RequestLine<'a> {
     pub path_array: Vec<&'a str>,
 }
 
-impl<'a> Request<'a> {
-    pub fn from(http_request: &'a Vec<String>, body: &'a str) -> Request<'a> {
+impl<'a> HttpRequest<'a> {
+    pub fn from(http_request: &'a Vec<String>, body: &'a str) -> HttpRequest<'a> {
         let mut headers: HashMap<String, String> = HashMap::new();
 
         let request_line = {
@@ -51,7 +49,7 @@ impl<'a> Request<'a> {
             headers.insert(key, header[1].trim().to_string());
         }
 
-        Request {
+        HttpRequest {
             request,
             headers,
             body,
@@ -62,7 +60,7 @@ impl<'a> Request<'a> {
     }
     fn to_string(&self) -> String {
         format!(
-            "Request Line: {}\r\n Headers: {}\r\n Body: {}",
+            "HttpRequest Line: {}\r\n Headers: {}\r\n Body: {}",
             self.request.to_string(),
             self.headers.to_string(),
             self.body

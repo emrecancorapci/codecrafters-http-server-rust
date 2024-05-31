@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use itertools::Itertools;
-use crate::extensions::hash_map::HashMapExt;
+use super::extensions::HashMapExt;
 
 pub struct HttpRequest<'a> {
     pub request: RequestLine<'a>,

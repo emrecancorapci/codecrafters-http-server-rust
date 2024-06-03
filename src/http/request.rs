@@ -82,8 +82,9 @@ fn parse_headers(http_request: &Vec<String>) -> HashMap<String, String> {
         }
 
         let key: String = header[0].trim().to_lowercase().to_string();
+        let value: String = header[1].trim().to_string();
 
-        headers.insert(key, header[1].trim().to_string());
+        headers.insert(key, value);
     }
     headers
 }

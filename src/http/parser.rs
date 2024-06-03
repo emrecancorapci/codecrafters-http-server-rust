@@ -12,9 +12,7 @@ pub fn parse_stream(mut stream: &TcpStream) -> Result<(Vec<String>, String), Str
         headers.push(line);
     }
 
-    let content_length = get_content_length(&headers);
-
-    match content_length {
+    match get_content_length(&headers) {
         Some(content_length) => {
             let mut body = Vec::with_capacity(content_length);
             let result = buf_reader.take(content_length as u64).read_to_end(&mut body);

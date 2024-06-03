@@ -58,16 +58,16 @@ impl HttpResponse {
             }
         }
 
-        let mut header = format!(
+        let mut response_bytes = format!(
             "{http_version} {status_code} {status_msg}\r\n{headers}\r\n",
             http_version = self.http_version,
             status_code = self.status_code.to_string(),
             status_msg = self.status_code.get_message()
         ).into_bytes();
 
-        header.extend_from_slice(&self.body);
+        response_bytes.extend_from_slice(&self.body);
 
-        header
+        response_bytes
     }
     pub fn debug_on(&mut self) -> &mut HttpResponse {
         self.debug_mode = true;
